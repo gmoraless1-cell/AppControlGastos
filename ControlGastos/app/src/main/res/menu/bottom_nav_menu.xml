@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/inicioFragment"
+        android:icon="@drawable/ic_home"
+        android:title="Inicio" />
+    <item
+        android:id="@+id/transaccionesFragment"
+        android:icon="@drawable/ic_list"
+        android:title="Transacciones" />
+    <item
+        android:id="@+id/categoriasFragment"
+        android:icon="@drawable/ic_pie"
+        android:title="Categorías" />
+    <item
+        android:id="@+id/resumenFragment"
+        android:icon="@drawable/ic_bars"
+        android:title="Resumen" />
+</menu>

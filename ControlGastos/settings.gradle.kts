@@ -17,7 +17,8 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        mavenLocal()   // 👈 NUEVO: busca tambien en ~/.m2 (donde quedo gastos-core)
+        maven { url = uri("https://jitpack.io") }   // para MPAndroidChart
+        mavenLocal()   // 👈 busca tambien en ~/.m2 (donde quedo gastos-core)
     }
 }
 

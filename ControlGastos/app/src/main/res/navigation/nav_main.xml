@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_main"
+    app:startDestination="@id/inicioFragment">
+
+    <fragment
+        android:id="@+id/inicioFragment"
+        android:name="edu.umg.controlgastos.ui.main.InicioFragment"
+        android:label="Inicio" />
+
+    <fragment
+        android:id="@+id/transaccionesFragment"
+        android:name="edu.umg.controlgastos.ui.main.TransaccionesFragment"
+        android:label="Transacciones" />
+
+    <fragment
+        android:id="@+id/categoriasFragment"
+        android:name="edu.umg.controlgastos.ui.main.CategoriasFragment"
+        android:label="Categorías" />
+
+    <fragment
+        android:id="@+id/resumenFragment"
+        android:name="edu.umg.controlgastos.ui.main.ResumenFragment"
+        android:label="Resumen" />
+</navigation>

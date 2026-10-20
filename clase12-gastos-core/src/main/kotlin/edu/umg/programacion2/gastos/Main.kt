@@ -1,8 +1,9 @@
 package edu.umg.programacion2.gastos
 
-import edu.umg.programacion2.gastos.datos.GastoRepositoryEnMemoria
+import edu.umg.programacion2.gastos.datos.TransaccionRepositoryEnMemoria
 import edu.umg.programacion2.gastos.modelo.Categoria
-import edu.umg.programacion2.gastos.modelo.Gasto
+import edu.umg.programacion2.gastos.modelo.TipoMovimiento
+import edu.umg.programacion2.gastos.modelo.Transaccion
 import edu.umg.programacion2.gastos.servicio.ControlGastos
 import kotlinx.coroutines.runBlocking
 import java.text.SimpleDateFormat
@@ -13,33 +14,36 @@ import java.util.Locale
  * Menu de consola para probar la libreria sin Android.
  * Se ejecuta con: mvn compile exec:java
  *
- * La MISMA linea que usara MainActivity en Android:
- *   val control = ControlGastos(GastoRepositoryEnMemoria())
+ * La MISMA linea que usara Android (con un repositorio Room en vez de memoria):
+ *   val control = ControlGastos(TransaccionRepositoryEnMemoria())
  */
 fun main() = runBlocking {
-    val control = ControlGastos(GastoRepositoryEnMemoria())
+    val control = ControlGastos(TransaccionRepositoryEnMemoria())
+    val usuarioId = 1L   // en consola simulamos un unico usuario
 
-    println("=== Control de Gastos (consola) ===")
+    println("=== Mi UMG · Control de Gastos (consola) ===")
     var salir = false
     while (!salir) {
         println(
             """
 
-            1) Registrar gasto
-            2) Listar gastos
-            3) Ver resumen
-            4) Total por categoria
-            5) Eliminar gasto por id
+            1) Registrar ingreso
+            2) Registrar egreso
+            3) Listar transacciones
+            4) Ver resumen (capital, ingresos, egresos)
+            5) Total por categoria
+            6) Eliminar transaccion por id
             0) Salir
             """.trimIndent()
         )
         print("Opción: ")
         when (readlnOrNull()?.trim()) {
-            "1" -> registrar(control)
-            "2" -> listar(control)
-            "3" -> println(">> ${control.resumen()}")
-            "4" -> totalPorCategoria(control)
-            "5" -> eliminar(control)
+            "1" -> registrar(control, usuarioId, TipoMovimiento.INGRESO)
+            "2" -> registrar(control, usuarioId, TipoMovimiento.EGRESO)
+            "3" -> listar(control, usuarioId)
+            "4" -> println(">> ${control.resumen(usuarioId)}")
+            "5" -> totalPorCategoria(control, usuarioId)
+            "6" -> eliminar(control)
             "0" -> salir = true
             else -> println("Opción no válida.")
         }
@@ -47,7 +51,7 @@ fun main() = runBlocking {
     println("¡Hasta luego!")
 }
 
-private suspend fun registrar(control: ControlGastos) {
+private suspend fun registrar(control: ControlGastos, usuarioId: Long, tipo: TipoMovimiento) {
     print("Descripción: ")
     val descripcion = readlnOrNull()?.trim().orEmpty()
 
@@ -58,47 +62,52 @@ private suspend fun registrar(control: ControlGastos) {
         return
     }
 
-    val categoria = elegirCategoria()
+    val categoria = elegirCategoria(tipo)
 
-    val gasto = Gasto(
+    val transaccion = Transaccion(
         descripcion = descripcion,
         monto = monto,
+        tipo = tipo,
         categoria = categoria,
-        fecha = fechaDeHoy()
+        fecha = fechaDeHoy(),
+        usuarioId = usuarioId
     )
 
-    val error = control.registrar(gasto)
+    val error = control.registrar(transaccion)
     if (error != null) {
         println("!! $error")
     } else {
-        println(">> Gasto registrado. ${control.resumen()}")
+        println(">> ${tipo} registrado. ${control.resumen(usuarioId)}")
     }
 }
 
-private fun elegirCategoria(): Categoria {
+private fun elegirCategoria(tipo: TipoMovimiento): Categoria {
+    val opciones = Categoria.porTipo(tipo)
     println("Categorías:")
-    Categoria.entries.forEachIndexed { indice, c -> println("  ${indice + 1}) $c") }
-    print("Elige (1-${Categoria.entries.size}): ")
+    opciones.forEachIndexed { indice, c -> println("  ${indice + 1}) $c") }
+    print("Elige (1-${opciones.size}): ")
     val indice = readlnOrNull()?.trim()?.toIntOrNull()?.minus(1)
-    return Categoria.entries.getOrElse(indice ?: -1) { Categoria.OTROS }
+    return opciones.getOrElse(indice ?: -1) { opciones.last() }
 }
 
-private suspend fun listar(control: ControlGastos) {
-    val gastos = control.listar()
-    if (gastos.isEmpty()) {
-        println(">> No hay gastos registrados.")
+private suspend fun listar(control: ControlGastos, usuarioId: Long) {
+    val movimientos = control.listar(usuarioId)
+    if (movimientos.isEmpty()) {
+        println(">> No hay transacciones registradas.")
         return
     }
-    println(">> Gastos:")
-    gastos.forEach { g ->
-        println(String.format(Locale.US, "  #%d  %-20s Q %8.2f  [%s]  %s", g.id, g.descripcion, g.monto, g.categoria, g.fecha))
+    println(">> Transacciones:")
+    movimientos.forEach { t ->
+        val signo = if (t.tipo == TipoMovimiento.INGRESO) "+" else "-"
+        println(String.format(Locale.US, "  #%d  %s Q %8.2f  %-16s [%s]  %s",
+            t.id, signo, t.monto, t.descripcion.ifBlank { "(sin descripción)" }, t.categoria, t.fecha))
     }
 }
 
-private suspend fun totalPorCategoria(control: ControlGastos) {
-    val totales = control.totalPorCategoria()
+private suspend fun totalPorCategoria(control: ControlGastos, usuarioId: Long) {
+    val totales = control.totalPorCategoria(usuarioId)
     if (totales.isEmpty()) {
-        println(">> No hay gastos registrados.")
+        println(">> No hay transacciones registradas.")
         return
     }
     println(">> Total por categoría:")
@@ -109,15 +118,15 @@ private suspend fun totalPorCategoria(control: ControlGastos) {
 
 private suspend fun eliminar(control: ControlGastos) {
     print("Id a eliminar: ")
-    val id = readlnOrNull()?.trim()?.toIntOrNull()
+    val id = readlnOrNull()?.trim()?.toLongOrNull()
     if (id == null) {
         println("!! Id inválido.")
         return
     }
     if (control.eliminar(id)) {
-        println(">> Gasto #$id eliminado. ${control.resumen()}")
+        println(">> Transacción #$id eliminada.")
     } else {
-        println("!! No existe un gasto con id #$id.")
+        println("!! No existe una transacción con id #$id.")
     }
 }
 

@@ -1,9 +1,24 @@
-# AppControlGastos
+# AppControlGastos — Mi UMG
 
-Proyecto de la **Clase 12 — Programación 2 (Universidad Mariano Gálvez)**.
+App de **control de gastos personales** (Proyecto Final — Programación 2, Universidad Mariano Gálvez).
 Demuestra cómo compartir código entre un proyecto Kotlin y una app Android publicando
 una **librería propia** en el repositorio local de Maven (`~/.m2`) y consumiéndola desde
 Android con Gradle (`mavenLocal()`).
+
+## Funcionalidades
+
+- **Login y registro** de usuarios (local, contraseñas hasheadas con SHA-256). Multiusuario:
+  cada usuario ve solo sus datos.
+- **Ingresos y egresos** con categorías, monto, fecha y descripción.
+- **Persistencia con SQLite** mediante Room (los datos sobreviven al cerrar la app).
+- **Pantallas** con navegación inferior: Inicio (capital, ingresos, egresos, gráfica de dona),
+  Transacciones (lista con filtros Todas/Ingresos/Egresos), Categorías (con porcentajes) y
+  Resumen. Más la pantalla de Registrar transacción y la de bienvenida.
+- **Tema oscuro dorado** e icono propio.
+
+> La **lógica de negocio** (modelos, validaciones, balance, cálculos) vive en la librería Kotlin
+> y se reutiliza. La **persistencia (Room/SQLite)** vive en la app Android, que implementa la
+> interfaz de repositorio que define la librería.
 
 El repositorio contiene **dos proyectos**:
 

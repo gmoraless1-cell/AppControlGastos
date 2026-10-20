@@ -1,3 +1,4 @@
 <resources>
-    <string name="app_name">Control de Gastos</string>
+    <string name="app_name">Mi UMG</string>
+    <string name="app_subtitle">Control de Gastos</string>
 </resources>
