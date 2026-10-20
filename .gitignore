@@ -1,0 +1,21 @@
+# ===== Raiz del repositorio =====
+
+# --- Proyecto Kotlin (Maven) ---
+clase12-gastos-core/target/
+
+# --- Proyecto Android (Gradle) ---
+ControlGastos/.gradle/
+ControlGastos/build/
+ControlGastos/app/build/
+ControlGastos/local.properties
+ControlGastos/captures/
+ControlGastos/.cxx/
+
+# --- IDEs ---
+.idea/
+*.iml
+.vscode/
+
+# --- Sistema operativo ---
+.DS_Store
+Thumbs.db
